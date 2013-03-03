@@ -1,15 +1,12 @@
 var request = require('request')
 var util = require('util')
+var extend = require('extend')
 module.exports = function(baseUrl, baseOptions){
   return new Api(baseUrl, baseOptions);
 }
 
-var Api = function(baseUrl, baseOptions){
-  this.baseUrl = baseUrl.replace(/\/$/,"");
-  this.baseOptions = baseOptions;
-}
-
-var placeHolder = function(path, queries){
+var createUrl = function(baseUrl, path, queries){
+  baseUrl = baseUrl.replace(/\/$/,"");
   path = path.replace(/^\//,""); // trim
   if(queries){
     //processing placeholder
@@ -17,24 +14,32 @@ var placeHolder = function(path, queries){
       path = path.replace(":"+q, queries[q])
     })
   }
-  return path
+  return baseUrl + "/" + path
 }
 
-var extendOption = function(baseOption, extendOption){
-  
+
+var Api = function(baseUrl, baseOptions){
+  this.baseUrl = baseUrl.replace(/\/$/,"");
+  this.baseOptions = baseOptions;
+}
+
+
+// setter
+Api.prototype.setRequest = function(request){
+  request = request;
 }
 
 Api.prototype.get = function(path, options, callback){
+  options.method = "get";
+  return this.request(path, options, callback)
+}
+
+Api.prototype.request = function(path, options, callback){
   var params = request.initParams("", options, callback)
-  
-  
-  path = placeHolder(path, options);
-  
-  option = extendOption(baseOptions, options.query)
-  
-  var url  = this.baseUrl + "/" + path
+  var options = extend(this.baseOptions, params.options)
+  var url = createUrl(this.baseUrl, path, options);
   params.url = url;
-  params.options.url = url;
-  request.get(params.url, params.options, params.callback)
+  
+  request(params.url, options, params.callback)
 }
 
