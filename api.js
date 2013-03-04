@@ -25,8 +25,8 @@ var Api = function(baseUrl, baseOptions){
 
 
 // setter
-Api.prototype.setRequest = function(request){
-  request = request;
+Api.prototype.setRequest = function(_request){
+  request = _request;
 }
 
 Api.prototype.get = function(path, options, callback){
@@ -35,11 +35,15 @@ Api.prototype.get = function(path, options, callback){
 }
 
 Api.prototype.request = function(path, options, callback){
-  var params = request.initParams("", options, callback)
+  var params = request.initParams(path, options, callback)
   var options = extend(this.baseOptions, params.options)
-  var url = createUrl(this.baseUrl, path, options);
-  params.url = url;
   
-  request(params.url, options, params.callback)
+  var queries = options.queries;
+  delete(options.queries)
+  var url = createUrl(this.baseUrl, path, queries);
+  //overwrite
+  options.uri = url;
+  
+  request(url, options, params.callback)
 }
 
